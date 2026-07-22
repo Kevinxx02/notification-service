@@ -1,0 +1,40 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Build application
+        run: docker compose up --build -d
+
+      - name: Install Composer dependencies
+        run: docker compose exec -T app composer install --no-interaction --prefer-dist
+
+      - name: Composer Security Audit
+        run: composer audit
+
+      - name: Run Laravel Pint
+        run: docker compose exec -T app ./vendor/bin/pint --test
+
+      - name: Run PHPStan
+        run: docker compose exec -T app ./vendor/bin/phpstan analyse --no-progress --memory-limit 500M
+
+      - name: Shutdown containers
+        if: always()
+        run: docker compose down --volumes --remove-orphans
