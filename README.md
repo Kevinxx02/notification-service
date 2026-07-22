@@ -1,58 +1,201 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Notification Service
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A production-oriented Notification Microservice built with **Laravel 13**, **PHP 8.3**, **RabbitMQ**, **Docker**, **Domain-Driven Design (DDD)** and **Hexagonal Architecture**.
 
-## About Laravel
+The service is responsible for processing asynchronous notification requests received through RabbitMQ and delivering transactional emails via SMTP.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This project focuses on software architecture, maintainability, code quality and asynchronous communication between microservices rather than exposing a traditional HTTP API.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Features
 
-## Learning Laravel
+* Asynchronous message consumption using RabbitMQ
+* Transactional email delivery via SMTP
+* Domain-Driven Design (DDD)
+* Hexagonal Architecture (Ports & Adapters)
+* Dependency Inversion Principle (DIP)
+* SOLID Principles
+* Immutable Value Objects
+* Dockerized development environment
+* Static analysis with PHPStan
+* Code style enforcement with Laravel Pint
+* Composer Security Audit
+* GitHub Actions Continuous Integration
+* PHPUnit
+* Mutation Testing (Infection)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# Architecture
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+Producer Service
+        │
+        ▼
+    RabbitMQ
+        │
+        ▼
+Rabbit Consumer Command
+        │
+        ▼
+SendNotificationHandler
+        │
+        ▼
+Notification Entity
+        │
+        ▼
+NotificationSender (Output Port)
+        │
+        ▼
+SMTP Adapter
+        │
+        ▼
+SMTP Server
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+The application follows a strict separation of responsibilities.
 
-## Contributing
+* Application layer coordinates use cases.
+* Domain layer contains all business rules.
+* Infrastructure contains framework and external integrations.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+The Domain remains completely independent from Laravel, RabbitMQ and SMTP.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Project Structure
 
-## Security Vulnerabilities
+```
+app
+├── Application
+│   ├── Ports
+│   │   ├── In
+│   │   └── Out
+│   └── SendNotification
+│
+├── Console
+│
+├── Domain
+│   ├── Entities
+│   ├── ValueObjects
+│   └── Exceptions
+│
+└── Infrastructure
+    ├── Notification
+    └── RabbitMQ
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+# Workflow
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. Another microservice publishes a notification event.
+2. RabbitMQ stores the message.
+3. The Notification Service consumes the message.
+4. The Use Case validates the request.
+5. Domain Objects are created.
+6. The SMTP Adapter sends the email.
+7. RabbitMQ receives an ACK confirming successful processing.
+
+---
+
+# Technologies
+
+* PHP 8.3
+* Laravel 13
+* RabbitMQ
+* Docker
+* Composer
+* PHPUnit
+* PHPStan
+* Laravel Pint
+* Infection
+* GitHub Actions
+
+---
+
+# Quality Standards
+
+Every Pull Request executes:
+
+* Composer Security Audit
+* Laravel Pint
+* PHPStan
+* PHPUnit
+* Mutation Testing
+
+Only code that passes every quality gate can be merged.
+
+---
+
+# Design Principles
+
+* Domain-Driven Design
+* Hexagonal Architecture
+* Repository Pattern (when persistence is required)
+* Dependency Injection
+* Ports and Adapters
+* SOLID
+* Clean Code
+
+---
+
+# Local Development
+
+```bash
+docker compose up --build -d
+```
+
+Run the RabbitMQ consumer:
+
+```bash
+php artisan rabbit:consume
+```
+
+Run static analysis:
+
+```bash
+./vendor/bin/phpstan analyse
+```
+
+Run code style checks:
+
+```bash
+./vendor/bin/pint --test
+```
+
+Run tests:
+
+```bash
+php artisan test
+```
+
+Run mutation testing:
+
+```bash
+vendor/bin/infection
+```
+
+---
+
+# Future Improvements
+
+* Retry queues
+* Dead Letter Queue (DLQ)
+* Exponential Backoff
+* Idempotent Message Processing
+* Correlation IDs
+* Distributed Tracing
+* Metrics and Monitoring
+* Structured Logging
+* Email Templates
+* Multi-provider SMTP support
+* Rate limiting
+* OpenTelemetry integration
+
+---
+
+# Purpose
+
+This project is intended as a production-style backend microservice demonstrating asynchronous communication, software architecture and modern backend engineering practices.
