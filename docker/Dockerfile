@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y \
     unzip \
     zip \
     libzip-dev \
-    && docker-php-ext-install zip \
+    && docker-php-ext-install \
+        zip \
+        sockets \
     && rm -rf /var/lib/apt/lists/*
 
 # PHPUnit coverage
