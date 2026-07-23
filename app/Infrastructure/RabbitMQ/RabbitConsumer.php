@@ -30,14 +30,28 @@ final readonly class RabbitConsumer
             exclusive: false,
             nowait: false,
             callback: function (AMQPMessage $message) use ($handler): void {
-                $handler->handle($message->getBody());
+                try {
+                    $this->process($message, $handler);
 
-                $message->ack();
+                    $message->ack();
+                } catch (\Throwable $exception) {
+                    $message->nack(
+                        requeue: true,
+                    );
+                }
             },
         );
 
         while ($channel->is_consuming()) {
             $channel->wait();
         }
+    }
+
+    private function process(
+        AMQPMessage $message,
+        MessageHandler $handler,
+    ): void
+    {
+        $handler->handle($message->getBody());
     }
 }
