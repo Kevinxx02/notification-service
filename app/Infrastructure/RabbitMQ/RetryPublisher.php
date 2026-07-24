@@ -14,7 +14,10 @@ final readonly class RetryPublisher
 
     public function publish(AMQPMessage $message): void
     {
-        $this->publisher->publish(
+        $retryCount = RabbitMessageHeaders::retryCount($message);
+        $retryCount++;
+
+        $this->publisher->republish(
             $message,
             config('rabbitmq.routing_keys.retry'),
         );

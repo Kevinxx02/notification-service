@@ -20,6 +20,8 @@ class RabbitPublishCommand extends Command
 
     public function handle(): int
     {
+        $config = config('rabbitmq');
+
         $payload = [
             'notificationId' => Uuid::uuid7()->toString(),
             'recipient' => 'test@example.com',
@@ -32,6 +34,7 @@ class RabbitPublishCommand extends Command
                 $payload,
                 JSON_THROW_ON_ERROR,
             ),
+            $config['routing_keys']['notification']
         );
 
         $this->info('Notification published.');

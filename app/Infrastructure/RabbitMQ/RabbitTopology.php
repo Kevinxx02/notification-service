@@ -101,6 +101,9 @@ final readonly class RabbitTopology
         );
     }
 
+    /**
+     * @param  array<string, int|string>  $arguments
+     */
     private function declareQueue(
         AMQPChannel $channel,
         string $queue,
