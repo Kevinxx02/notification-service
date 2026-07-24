@@ -13,8 +13,11 @@ final readonly class RabbitPublisher
         private RabbitTopology $topology,
     ) {}
 
-    public function publish(string $payload): void
-    {
+    public function publish(
+        string $payload,
+        ?string $routingKey = null,
+    ): void {
+
         $this->topology->initialize();
 
         $config = config('rabbitmq');
@@ -29,10 +32,20 @@ final readonly class RabbitPublisher
 
         $this->connection
             ->channel()
+            ->basic_publish($message);
+    }
+
+    public function republish(
+        AMQPMessage $message,
+        ?string $routingKey = null,
+    ): void {
+        $this->connection
+            ->channel()
             ->basic_publish(
                 $message,
                 $config['exchange'],
-                $config['routing_key'],
+                $routingKey,
             );
+
     }
 }

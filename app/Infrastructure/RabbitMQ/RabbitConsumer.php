@@ -12,6 +12,7 @@ final readonly class RabbitConsumer
     public function __construct(
         private RabbitConnection $connection,
         private RabbitTopology $topology,
+        private RetryPublisher $retryPublisher,
     ) {}
 
     public function consume(MessageHandler $handler): void
@@ -23,7 +24,7 @@ final readonly class RabbitConsumer
         $config = config('rabbitmq');
 
         $channel->basic_consume(
-            queue: $config['queue'],
+            queue: $config['queues']['notification'],
             consumer_tag: '',
             no_local: false,
             no_ack: false,
@@ -35,9 +36,8 @@ final readonly class RabbitConsumer
 
                     $message->ack();
                 } catch (\Throwable $exception) {
-                    $message->nack(
-                        requeue: true,
-                    );
+                    $this->retryPublisher->publish($message);
+                    $message->ack();
                 }
             },
         );
@@ -50,8 +50,7 @@ final readonly class RabbitConsumer
     private function process(
         AMQPMessage $message,
         MessageHandler $handler,
-    ): void
-    {
+    ): void {
         $handler->handle($message->getBody());
     }
 }
