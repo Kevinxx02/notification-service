@@ -32,7 +32,11 @@ final readonly class RabbitPublisher
 
         $this->connection
             ->channel()
-            ->basic_publish($message);
+            ->basic_publish(
+                $message,
+                $config['exchange'],
+                $routingKey ?? $config['routing_keys']['notification'],
+            );
     }
 
     public function republish(
